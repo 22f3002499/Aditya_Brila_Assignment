@@ -1,0 +1,20 @@
+# secrets and local config - never commit these
+.env
+*.env
+!.env.example
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# local database files
+backend/data/*.db
+backend/data/*.db-*
+*.db
+
+# node
+node_modules/
+frontend/dist/

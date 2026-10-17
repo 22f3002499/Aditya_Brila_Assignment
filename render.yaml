@@ -1,0 +1,41 @@
+# Render Blueprint: creates BOTH services (API + frontend) from this one repository.
+# Both use the free plan. Values marked "sync: false" are asked for in the Render dashboard
+# so that secrets are never stored in the repository.
+services:
+  # ---------------- FastAPI backend (a web service) ----------------
+  - type: web
+    name: economic-dashboard-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: JWT_SECRET
+        generateValue: true        # Render creates a long random secret
+      - key: FRONTEND_ORIGIN
+        sync: false                # e.g. https://economic-dashboard-web.onrender.com
+      - key: EVAL_USERNAME
+        sync: false
+      - key: EVAL_PASSWORD
+        sync: false
+      - key: DATABASE_PATH
+        value: /tmp/dashboard.db
+
+  # ---------------- React frontend (a static site) ----------------
+  - type: web
+    name: economic-dashboard-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false                # e.g. https://economic-dashboard-api.onrender.com
+    routes:
+      - type: rewrite              # lets the single-page app handle every URL
+        source: /*
+        destination: /index.html
